@@ -92,7 +92,7 @@
         camera.updateProjectionMatrix();
       }
 
-      pickHelper.pick(camera, pickPosition);
+      pickHelper.pick(camera, pickPosition, scene);
       renderer.render(scene, camera);
 
       requestAnimationFrame(render);
