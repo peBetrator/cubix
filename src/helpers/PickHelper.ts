@@ -4,25 +4,39 @@ import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 export class PickHelper {
   raycaster: THREE.Raycaster;
   pivot: THREE.Object3D;
-  pickedObject: THREE.Mesh;
+  pickedObjects: THREE.Mesh[];
   isDragging: boolean;
 
   constructor() {
     this.raycaster = new THREE.Raycaster();
     this.pivot = new THREE.Object3D();
-    this.pickedObject = null;
+    this.pickedObjects = [];
     this.isDragging = false;
   }
 
   picked(controls: OrbitControls, scene: THREE.Scene) {
     const intersectedObjects = this.raycaster.intersectObjects(scene.children);
     if (intersectedObjects.length) {
-      this.pickedObject = intersectedObjects[0].object as THREE.Mesh;
+      const {
+        point,
+        object,
+        object: { position },
+      } = intersectedObjects[0];
+      console.log(point, position);
+      const { x, y, z } = position;
+
+      const objectsToRotate: THREE.Mesh[] = [];
+      scene.children.forEach((cube: THREE.Mesh) => {
+        if (cube.position.x === x) {
+          objectsToRotate.push(cube);
+        }
+      });
+
+      this.pickedObjects = objectsToRotate;
       controls.enabled = false;
       this.isDragging = true;
       this.pivot = new THREE.Object3D();
-      const { x, y, z } = intersectedObjects[0].object.position;
-      this.pivot.position.set(x, y, z);
+      this.pivot.position.set(x, 0, 0);
     }
   }
 
@@ -30,39 +44,23 @@ export class PickHelper {
     this.raycaster.setFromCamera(normalizedPosition, camera);
     if (this.isDragging) {
       // attach group to be rotated
-      this.pivot.attach(this.pickedObject);
-      this.pivot.rotation.x += 0.1;
+      this.pickedObjects.forEach((cube: THREE.Mesh) => {
+        this.pivot.attach(cube);
+      });
+
+      // apply rotation
+      this.pivot.rotation.x = normalizedPosition.x;
 
       // back to main scene
-      scene.attach(this.pickedObject);
+      this.pickedObjects.forEach((cube: THREE.Mesh) => {
+        scene.attach(cube);
+      });
     }
   }
 
   dropped(controls: OrbitControls) {
     controls.enabled = true;
+    this.pickedObjects = [];
     this.isDragging = false;
-    this.pickedObject = null;
   }
-
-  // pick(normalizedPosition, scene, camera, time) {
-  //   // restore the color if there is a picked object
-  //   if (this.pickedObject) {
-  //     // this.pickedObject.material[this.faceIndex].color.set(this.pickedObjectSavedColor);
-  //     this.pickedObject = undefined;
-  //   }
-
-  //   // cast a ray through the frustum
-  //   this.raycaster.setFromCamera(normalizedPosition, camera);
-  //   // get the list of objects the ray intersected
-  //   const intersectedObjects = this.raycaster.intersectObjects(scene.children);
-  //   if (intersectedObjects.length) {
-  //     // pick the first object. It's the closest one
-  //     this.pickedObject = intersectedObjects[0].object as THREE.Mesh;
-  //     this.faceIndex = intersectedObjects[0].face.materialIndex;
-  //     // save its color
-  //     // this.pickedObjectSavedColor = this.pickedObject.material[this.faceIndex].color;
-  //     // set its emissive color to flashing red/yellow
-  //     // this.pickedObject.material[this.faceIndex].color.set((time * 8) % 2 > 1 ? 0xffff00 : 0xff0000);
-  //   }
-  // }
 }

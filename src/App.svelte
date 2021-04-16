@@ -48,19 +48,10 @@
       const edges: THREE.EdgesGeometry = new THREE.EdgesGeometry(geometry);
       const borderMaterial: THREE.LineBasicMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
 
-      // const pivot = new THREE.Object3D();
-      // pivot.rotation.set(0, 0, 0.5);
-      // scene.add(pivot);
-
       for (let z = 1; z >= -1; z--) {
         for (let y = -1; y <= 1; y++) {
           for (let x = 1; x >= -1; x--) {
             const cube: THREE.Mesh = new THREE.Mesh(geometry, materials);
-
-            // if (z === 1) {
-            //   pivot.attach(cube);
-            //   pivot.updateMatrixWorld();
-            // }
 
             const line: THREE.LineSegments = new THREE.LineSegments(edges, borderMaterial);
             cube.add(line);
